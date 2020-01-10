@@ -28,19 +28,15 @@ Adds block of time, in hours, to client (if defined in config) w/ optional messa
 
 #### Arguments
 
-Time
-    Hour increments defined as decimal number or fraction w/o spaces (e.g. 0.25, 1/4)
+Time: Hour increments defined as decimal number or fraction w/o spaces (e.g. 0.25, 1/4)
 
-Client
-    The handle of the client to record time against. Client must exist in config file from previous create command
+Client: The handle of the client to record time against. Client must exist in config file from previous create command
 
 #### Options
 
-`-m`/`--message`: message
-    An optional message to record w/ added time
+`-m`/`--message`: An optional message to record w/ added time
 
-`-p`/`--project`: project
-    An optional project to record time against for specified client. If project does not exist for client, a new one will be created. Time entries can be updated to change project later.
+`-p`/`--project`: An optional project to record time against for specified client. If project does not exist for client, a new one will be created. Time entries can be updated to change project later.
 
 #### Example
 
@@ -68,9 +64,9 @@ Stops currently running timer and logs against optional project w/ optional mess
 
 #### Options
 
-`-m`/`--message`: message
+`-m`/`--message`
 
-`-p`/`--project`: project
+`-p`/`--project`
 
 #### Example
 
@@ -84,17 +80,13 @@ Prints log of most recent time entries w/ optional client, project, and date fla
 
 #### Options
 
-`-c`/`--client`: client
-    An optional client to filter time log
+`-c`/`--client`: An optional client to filter time log
 
-`-p`/`--project`: project
-    An optional project to filter time log
+`-p`/`--project`: An optional project to filter time log
 
-`--from`
-    An optional flag to only print time after a given datetime (e.g. 30d). Defaults to 30 days before now.
+`--from`: An optional flag to only print time after a given datetime (e.g. 30d). Defaults to 30 days before now.
 
-`--to`
-    An optional flag to only print time until a given datetime (e.g. yesterday). Defaults to now.
+`--to`: An optional flag to only print time until a given datetime (e.g. yesterday). Defaults to now.
 
 #### Example
 
@@ -112,11 +104,9 @@ Client
 
 #### Options
 
-`--from`
-    An optional flag to only invoice time after a given datetime (e.g. 30d). Defaults to 30 days before now.
+`--from`: An optional flag to only invoice time after a given datetime (e.g. 30d). Defaults to 30 days before now.
 
-`--to`
-    An optional flag to only invoice time until a given datetime (e.g. yesterday). Defaults to now.
+`--to`: An optional flag to only invoice time until a given datetime (e.g. yesterday). Defaults to now.
 
 #### Example
 
