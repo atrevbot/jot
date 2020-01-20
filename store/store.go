@@ -17,24 +17,13 @@ type entry struct {
 	Project  string
 }
 
-func NewEntry(d time.Duration, m string) (*entry, error) {
-	p, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-
-	return &entry{time.Now(), d, m, p}, nil
-}
-
 type Repo interface {
 	All() ([]entry, error)
-	One(id int) (*entry, error)
-	Save(e *entry) error
-	Update(e *entry) error
+	New(d time.Duration, m string) error
 	Delete(id int) error
 }
 
-func NewRepo(db *bolt.DB) (Repo, error) {
+func New(db *bolt.DB) (Repo, error) {
 	err := db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(TIME_ENTRIES_BUCKET))
 
@@ -51,24 +40,27 @@ type store struct {
 	db *bolt.DB
 }
 
-func (s *store) All() ([]entry, error)      { var es []entry; return es, nil }
-func (s *store) One(id int) (*entry, error) { return &entry{}, nil }
-func (s *store) Save(e *entry) error {
+func (s *store) All() ([]entry, error) { var es []entry; return es, nil }
+func (s *store) New(d time.Duration, m string) error {
 	return s.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(TIME_ENTRIES_BUCKET))
-
 		key, err := time.Now().MarshalText()
 		if err != nil {
 			return err
 		}
 
-		val, err := json.Marshal(e)
+		p, err := os.Getwd()
 		if err != nil {
 			return err
 		}
 
+		val, err := json.Marshal(entry{time.Now(), d, m, p})
+		if err != nil {
+			return err
+		}
+
+		b := tx.Bucket([]byte(TIME_ENTRIES_BUCKET))
+
 		return b.Put(key, val)
 	})
 }
-func (s *store) Update(e *entry) error { return nil }
-func (s *store) Delete(id int) error   { return nil }
+func (s *store) Delete(id int) error { return nil }

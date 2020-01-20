@@ -27,22 +27,23 @@ func Execute(cmd string, config *os.File, db *bolt.DB) {
 			log.Fatal("Please provide a non-zero duration")
 		}
 
+		// Parse time duration
 		d, err := time.ParseDuration(os.Args[2])
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		e, err := store.NewEntry(d, "Test Message")
+		// TODO: Parse message from command flag -m
+		m := "Test Message"
+
+		// Get repository to create time entries
+		r, err := store.New(db)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		r, err := store.NewRepo(db)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = r.Save(e)
+		// Create new time entry
+		err = r.New(d, m)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -57,7 +58,7 @@ func Execute(cmd string, config *os.File, db *bolt.DB) {
 		fmt.Println("TODO: Implement 'stop' command functionality.")
 		break
 	case "invoice":
-		r, err := store.NewRepo(db)
+		r, err := store.New(db)
 		if err != nil {
 			log.Fatal(err)
 		}
