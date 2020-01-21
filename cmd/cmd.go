@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/atrevbot/jot/server"
 	"github.com/atrevbot/jot/store"
-	"github.com/joho/godotenv"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -22,6 +22,7 @@ func Execute(cmd string, config *os.File, db *bolt.DB) {
 	case "init":
 		// TODO: Initialize current working directory in global `.jot` directory.
 		fmt.Println("TODO: Implement 'init' command functionality.")
+		os.Exit(0)
 	case "add":
 		if len(os.Args) < 3 {
 			log.Fatal("Please provide a non-zero duration")
@@ -33,8 +34,11 @@ func Execute(cmd string, config *os.File, db *bolt.DB) {
 			log.Fatal(err)
 		}
 
-		// TODO: Parse message from command flag -m
-		m := "Test Message"
+		// Parse message from command flag -m
+		var m string
+		logFlag := flag.NewFlagSet("log", flag.ExitOnError)
+		logFlag.StringVar(&m, "m", "", "Description of time entry")
+		logFlag.Parse(os.Args[3:])
 
 		// Get repository to create time entries
 		r, err := store.New(db)
@@ -49,27 +53,45 @@ func Execute(cmd string, config *os.File, db *bolt.DB) {
 		}
 
 		os.Exit(0)
+	case "log":
+		// Get repository to create time entries
+		r, err := store.New(db)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Get all entries
+		es, err := r.All()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, e := range es {
+			fmt.Printf(
+				"Spent %s on %s - %s \n",
+				e.Duration,
+				e.Message,
+				e.Created.Format("Mon Jan 2 @3:04PM"),
+			)
+		}
+
+		os.Exit(0)
 	case "start":
 		// TODO: Open new time entry for provided client/project at timestamp.
 		fmt.Println("TODO: Implement 'start' command functionality.")
-		break
+		os.Exit(0)
 	case "stop":
 		// TODO: Close open time entry and add to repo.
 		fmt.Println("TODO: Implement 'stop' command functionality.")
-		break
+		os.Exit(0)
 	case "invoice":
 		r, err := store.New(db)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		e, err := godotenv.Read()
-		if err != nil {
-			e = make(map[string]string)
-		}
-
 		// Create server and attach routes
-		s := server.New(APP_ADDR, r, e)
+		s := server.New(APP_ADDR, r)
 
 		// Make sure server is running before opening page
 		go func() {
@@ -95,15 +117,10 @@ func Execute(cmd string, config *os.File, db *bolt.DB) {
 		log.Fatal(s.ListenAndServe())
 
 		os.Exit(0)
-	case "config":
-		// TODO: Create server and load localhost browser instance to CRUD
-		// clients and projects to store in config file in .jot directory.
-		fmt.Println("TODO: Implement 'config' command functionality.")
-		break
 	default:
 		// TODO: Provide short description of how to use utilitiy.
 		fmt.Println("TODO: Implement help page for empty command.")
-		break
+		os.Exit(0)
 	}
 }
 

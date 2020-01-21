@@ -18,7 +18,7 @@ type entry struct {
 }
 
 type Repo interface {
-	All() ([]entry, error)
+	All() ([]*entry, error)
 	New(d time.Duration, m string) error
 	Delete(id int) error
 }
@@ -40,7 +40,31 @@ type store struct {
 	db *bolt.DB
 }
 
-func (s *store) All() ([]entry, error) { var es []entry; return es, nil }
+func (s *store) All() ([]*entry, error) {
+	var es []*entry
+
+	err := s.db.View(func(tx *bolt.Tx) error {
+		// Assume bucket exists and has keys
+		b := tx.Bucket([]byte(TIME_ENTRIES_BUCKET))
+		c := b.Cursor()
+
+		// Query in descending order
+		for k, v := c.Last(); k != nil; k, v = c.Prev() {
+			e := &entry{}
+			if err := json.Unmarshal(v, e); err != nil {
+				return err
+			}
+			es = append(es, e)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return es, nil
+}
 func (s *store) New(d time.Duration, m string) error {
 	return s.db.Update(func(tx *bolt.Tx) error {
 		key, err := time.Now().MarshalText()

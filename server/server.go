@@ -14,19 +14,15 @@ import (
 type Server struct {
 	http.Server
 	Repo *store.Repo
-	Env  map[string]string
 }
 
-func New(a string, r store.Repo, e map[string]string) *Server {
+func New(a string, r store.Repo) *Server {
 	h := mux.NewRouter()
 	s := Server{
 		http.Server{Addr: ":8080", Handler: h},
 		&r,
-		e,
 	}
 
-	// Define router, static files, and middleware
-	h.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	// Routes to handle requests from browsers and HTML forms
 	h.HandleFunc("/", s.handleIndex()).Methods("GET")
 	h.HandleFunc("/close", s.handleClose()).Methods("GET")
@@ -39,19 +35,18 @@ func New(a string, r store.Repo, e map[string]string) *Server {
  */
 func (s *Server) handleIndex() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		name := "index"
-		title := "Home"
+		n := "index"
+		t := "Home"
 
 		// Handle 404 routes
 		if r.URL.Path != "/" {
 			w.WriteHeader(http.StatusNotFound)
-			name = "404"
-			title = "Uh oh"
+			n = "404"
+			t = "Uh oh"
 		}
 
-		s.getTemplate(name, nil).Execute(w, map[string]interface{}{
-			"title": title,
-			"env":   s.Env,
+		s.getTemplate(n, nil).Execute(w, map[string]interface{}{
+			"title": t,
 		})
 	}
 }
@@ -68,7 +63,7 @@ func (s *Server) handleClose() http.HandlerFunc {
 /**
  * Helper function to load all required layouts and partials to load template
  */
-func (s *Server) getTemplate(name string, fm template.FuncMap) *template.Template {
+func (s *Server) getTemplate(n string, fm template.FuncMap) *template.Template {
 	funcMap := template.FuncMap{
 		"now": func() int {
 			return time.Now().Year()
@@ -84,12 +79,10 @@ func (s *Server) getTemplate(name string, fm template.FuncMap) *template.Templat
 
 	t, err := template.New("main.html").Funcs(funcMap).ParseFiles(
 		"templates/_layouts/main.html",
-		"templates/_meta/data.html",
-		"templates/_meta/favicons.html",
-		fmt.Sprintf("templates/%s.html", name),
+		fmt.Sprintf("templates/%s.html", n),
 	)
 	if err != nil {
-		fmt.Printf("Unable to load template %s: \n", name, err)
+		fmt.Printf("Unable to load template %s: \n", n, err)
 	}
 
 	return t
