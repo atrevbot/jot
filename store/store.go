@@ -2,7 +2,6 @@ package store
 
 import (
 	"encoding/json"
-	"os"
 	"time"
 
 	bolt "go.etcd.io/bbolt"
@@ -19,7 +18,7 @@ type entry struct {
 
 type Repo interface {
 	All() ([]*entry, error)
-	New(d time.Duration, m string) error
+	New(d time.Duration, m, p string) error
 	Delete(id int) error
 }
 
@@ -65,19 +64,16 @@ func (s *store) All() ([]*entry, error) {
 
 	return es, nil
 }
-func (s *store) New(d time.Duration, m string) error {
+func (s *store) New(d time.Duration, m, p string) error {
+	e := entry{time.Now(), d, m, p}
+
 	return s.db.Update(func(tx *bolt.Tx) error {
 		key, err := time.Now().MarshalText()
 		if err != nil {
 			return err
 		}
 
-		p, err := os.Getwd()
-		if err != nil {
-			return err
-		}
-
-		val, err := json.Marshal(entry{time.Now(), d, m, p})
+		val, err := json.Marshal(e)
 		if err != nil {
 			return err
 		}

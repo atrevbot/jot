@@ -1,15 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
 	"github.com/atrevbot/jot/cmd"
+	"github.com/atrevbot/jot/store"
 	bolt "go.etcd.io/bbolt"
 )
-
-const DB_NAME = "entries.db"
 
 func main() {
 	// Make sure command is passed
@@ -17,19 +15,18 @@ func main() {
 		log.Fatal("Please provide a command. For a list of commands use the --help flag")
 	}
 
-	// Read config file to parse overwritable default values.
-	config, err := os.Open(".jot/config")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer config.Close()
-
 	// Open DB connection for executing command
-	db, err := bolt.Open(fmt.Sprintf(".jot/%s", DB_NAME), 0600, nil)
+	db, err := bolt.Open(".jot/entries.db", 0600, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	cmd.Execute(os.Args[1], config, db)
+	// Get repository for time entries
+	repo, err := store.New(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cmd.Execute(os.Args[1], repo)
 }
